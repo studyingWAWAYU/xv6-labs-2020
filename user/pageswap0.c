@@ -130,23 +130,6 @@ void LRU_select(int ref[], int phySize, int refLen){
     PrintFinal(lackNum,replaceNum,refLen);
 }
 
-void splitStr(char* str, int* intArray, int* count) {
-    int num = 0;
-    int i = 0;
-
-    while(str[i] != '\0') {
-        if (str[i] == ',') {
-            intArray[*count] = num;
-            (*count)++;
-            num = 0;
-        }else{
-            num = num*10 + (str[i]-'0');
-        }
-        i++;
-    }
-    intArray[*count] = num;
-    (*count)++;
-}
 
 
 int main(int argc, char *argv[]) {
@@ -159,18 +142,18 @@ int main(int argc, char *argv[]) {
     // 读取输入参数，用atoi()将输入转换为整数类型
     int phySize = atoi(argv[1]);   // 物理块数量
     int algorithm = atoi(argv[2]); //选择算法，1表示FIFO，2表示LRU
-    char *refStr = argv[3];        // 引用串
+    int refLen = argc-3;        // 引用串的长度
 
-    // 判断输入的参数大于0
-    if ( phySize <= 0) {
-        printf("Invalid input parameters phySize \n");
+    // 判断输入的参数都要大于0,refLen不能超过最大串长度
+    if ( phySize <= 0|| refLen<=0 || refLen > MAX_REFLEN) {
+        printf("Invalid input parameters\n");
         exit(1);
     }
 
     int ref[MAX_REFLEN];
-    int refLen = 0;
-     
-    splitStr(refStr, ref, &refLen);
+    for(int i=0; i<refLen; i++) {
+        ref[i] = atoi(argv[i+3]);
+    }
     PrintRef(ref, refLen);
 
     if (algorithm==1){

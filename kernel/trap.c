@@ -67,6 +67,20 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) != 0){
     // ok
+  } else if (r_scause() == 13 || r_scause() == 15 ) {
+   // handle page fault
+    uint64 fault_va = r_stval();    // faulting virtual address
+    uint64 pa = (uint64)kalloc();   // allocated pysical address
+    if(PGROUNDUP(p->trapframe->sp) -1 < fault_va && fault_va < p->sz && pa !=0) {
+        memset((void*)pa, 0, PGSIZE);
+	if (mappages(p->pagetable, PGROUNDDOWN(fault_va), PGSIZE, pa, PTE_R | PTE_W | PTE_X | PTE_U) !=0) {
+	    kfree((void*)pa);
+            p->killed = 1;
+        }
+    } else{
+        // printf("usertrap(): out of memory!\n");
+	p->killed = 1;
+    }	
   } else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
